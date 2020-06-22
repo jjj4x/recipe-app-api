@@ -10,4 +10,5 @@ before_script:
   - pip install docker-compose
 
 script:
+  # FIXME: why not to split linting and testing?
   - 'docker-compose run app sh -c "python manage.py test && flake8"'
