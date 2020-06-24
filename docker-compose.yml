@@ -1,14 +1,28 @@
 version: '3.8'
 
 services:
- app:
-   image: recipe-app-api
-   build:
-     context: .
-   ports:
-     - '18000:8000'
-   volumes:
-     - ./app:/app
-     - /tmp:/boo
-   command: >
-     sh -c 'python manage.py runserver 0.0.0.0:8000'
+  app:
+    image: recipe-app-api
+    build:
+      context: .
+    depends_on:
+      - db
+    ports:
+      - '18000:8000'
+    volumes:
+      - ./app:/app
+    environment:
+      - DB_HOST=db
+      - DB_NAME=app
+      - DB_USER=postgres
+      - DB_PASS=postgres
+      - DB_MIGRATE=true
+    command: >
+      sh -c 'python manage.py runserver 0.0.0.0:8000'
+
+  db:
+    image: postgres:10-alpine
+    environment:
+      - POSTGRES_DB=app
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
