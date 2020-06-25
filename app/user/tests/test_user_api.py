@@ -121,3 +121,57 @@ class PublicUserAPITests(TestCase):
 
         self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_retrieve_user_unauthorized(self):
+        """Test unauthorized user."""
+        res = self.client.get(reverse('user:me'))
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PrivateAPITests(TestCase):
+    """Test API requests that require authentication."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = create_user(
+            email='j@j.com',
+            password='123qwerty',
+            name='Maxim',
+        )
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+    def test_retrieve_profile_success(self):
+        """Test get profile for logged in user."""
+        res = self.client.get(reverse('user:me'))
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            res.data,
+            {'name': self.user.name, 'email': self.user.email},
+        )
+
+    def test_post_profile_not_allowed(self):
+        """Test POST is not allowed for profile."""
+        res = self.client.post(reverse('user:me'), {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_update_user_profile(self):
+        """Test updating authenticated user."""
+        payload = {
+            'name': 'new name',
+            'password': 'new123qwerty',
+        }
+        res = self.client.patch(reverse('user:me'), payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        self.user.refresh_from_db()
+
+        self.assertEqual(self.user.name, payload['name'])
+        self.assertTrue(self.user.check_password(payload['password']))
