@@ -71,3 +71,26 @@ class PrivateIngredientsAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['name'], ing.name)
+
+    def test_create_ing_successful(self):
+        """Test success."""
+        payload = {
+            'name': 'Cabbage',
+        }
+        self.client.post(reverse('recipe:ingredient-list'), payload)
+
+        is_ing = Ingredient.objects.filter(
+            user=self.user,
+            name=payload['name'],
+        ).exists()
+
+        self.assertTrue(is_ing)
+
+    def test_create_ing_invalid(self):
+        """Test invalid."""
+        payload = {
+            'name': '',
+        }
+        res = self.client.post(reverse('recipe:ingredient-list'), payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
