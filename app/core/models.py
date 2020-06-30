@@ -1,3 +1,6 @@
+from uuid import uuid4
+from os import path
+
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -5,6 +8,13 @@ from django.contrib.auth.models import (
 )
 from django.conf import settings
 from django.db import models
+
+
+def recipe_image_filename(instance, filename):
+    """Normalize filename for an image."""
+    _ = instance
+    filename = f'{uuid4()}{path.splitext(filename)[-1]}'
+    return path.join('uploads', 'recipe', filename)
 
 
 class UserManger(BaseUserManager):
@@ -104,6 +114,10 @@ class Recipe(models.Model):
     link = models.CharField(
         max_length=255,
         blank=True,
+    )
+    image = models.ImageField(
+        null=True,
+        upload_to=recipe_image_filename,
     )
 
     ingredients = models.ManyToManyField('Ingredient')
