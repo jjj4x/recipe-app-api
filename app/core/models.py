@@ -12,7 +12,6 @@ from django.db import models
 
 def recipe_image_filename(instance, filename):
     """Normalize filename for an image."""
-    _ = instance
     filename = f'{uuid4()}{path.splitext(filename)[-1]}'
     return path.join('uploads', 'recipe', filename)
 

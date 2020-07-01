@@ -73,7 +73,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve the own recipes."""
-        return self.queryset.filter(user=self.request.user)
+        qs = self.queryset
+
+        tags = self.request.query_params.get('tags')
+        ings = self.request.query_params.get('ingredients')
+
+        if tags:
+            qs = qs.filter(tags__id__in=[int(t) for t in tags.split(',')])
+
+        if ings:
+            qs = qs.filter(
+                ingredients__id__in=[int(i) for i in ings.split(',')],
+            )
+
+        return qs.filter(user=self.request.user)
 
     def get_serializer_class(self):
         """Return appropriate serializer."""
@@ -90,7 +103,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=True, url_path='upload-image')
     def upload_image(self, request, pk=None):
         """Upload an image to a recipe."""
-        _ = pk
         recipe = self.get_object()
         serializer = self.get_serializer(recipe, data=request.data)
 

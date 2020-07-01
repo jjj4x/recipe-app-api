@@ -224,6 +224,56 @@ class PrivateRecipeAPITests(TestCase):
         tags = recipe.tags.all()
         self.assertEqual(len(tags), 0)
 
+    def test_filter_recipes_by_tags(self):
+        """Test filtering by tags."""
+        recipe1 = sample_recipe(self.user, title='Thai vegetable curry')
+        recipe2 = sample_recipe(self.user, title='Aubergine with tahini')
+        recipe3 = sample_recipe(self.user, title='Fish and chips')
+
+        tag1 = sample_tag(self.user, name='Vegan')
+        tag2 = sample_tag(self.user, name='Vegetarian')
+
+        recipe1.tags.add(tag1)
+        recipe2.tags.add(tag2)
+
+        res = self.client.get(
+            reverse('recipe:recipe-list'),
+            {'tags': f'{tag1.id},{tag2.id}'},
+        )
+
+        ser1 = RecipeSerializer(recipe1)
+        ser2 = RecipeSerializer(recipe2)
+        ser3 = RecipeSerializer(recipe3)
+
+        self.assertIn(ser1.data, res.data)
+        self.assertIn(ser2.data, res.data)
+        self.assertNotIn(ser3.data, res.data)
+
+    def test_filter_recipes_by_ingredients(self):
+        """Test filtering by ingredients."""
+        recipe1 = sample_recipe(self.user, title='Posh beans on toast')
+        recipe2 = sample_recipe(self.user, title='Chicken cacciatore')
+        recipe3 = sample_recipe(self.user, title='Steak and mushrooms')
+
+        ing1 = sample_ingredient(self.user, name='Feta cheese')
+        ing2 = sample_ingredient(self.user, name='Chicken')
+
+        recipe1.ingredients.add(ing1)
+        recipe2.ingredients.add(ing2)
+
+        res = self.client.get(
+            reverse('recipe:recipe-list'),
+            {'ingredients': f'{ing1.id},{ing2.id}'},
+        )
+
+        ser1 = RecipeSerializer(recipe1)
+        ser2 = RecipeSerializer(recipe2)
+        ser3 = RecipeSerializer(recipe3)
+
+        self.assertIn(ser1.data, res.data)
+        self.assertIn(ser2.data, res.data)
+        self.assertNotIn(ser3.data, res.data)
+
 
 class RecipeUploadImageTests(TestCase):
     """Test image uploads."""
