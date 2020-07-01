@@ -28,7 +28,15 @@ class CommonRecipeAttributesMixin:
 
     def get_queryset(self):
         """Return objects for the current authenticated user only."""
-        return self.queryset.filter(user=self.request.user).order_by('-name')
+        qs = self.queryset
+
+        is_assigned_only = bool(int(
+            self.request.query_params.get('assigned_only', 0)
+        ))
+        if is_assigned_only:
+            qs = qs.filter(recipe__isnull=False)
+
+        return qs.filter(user=self.request.user).order_by('-name').distinct()
 
     def perform_create(self, serializer):
         """Assign a tag to a user."""
